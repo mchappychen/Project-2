@@ -1,0 +1,208 @@
+---
+title: "Michael Chen Project 2 Individual Report"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+```{r echo=FALSE, results="hide", message=FALSE}
+data <- read_csv("SAT_School_Participation_and_Performance__2012-2013.csv")
+```
+
+# Michael Chen
+## Introduction
+
+This data set is the measurement of SAT performance for schools in the state of Connecticut for 2012 and 2013. It recorded each school's district number and name, school name, number of test takers for each year, number of participants, number that met the benchmark, and their respective percentage change from 2012 to 2013. 
+
+In this report I'll explore which schools had the most percentage meeting benchmark in 2012 and 2013, which year had a higher percentage meeting benchmark, and an estimate for the total population of high school students in Connecticut.
+
+## Questions and findings
+### Which schools had the most percent meeting benchmark in 2012 and 2013?
+
+First we'll try to see which schools had the highest percentage meeting benchmark in 2012
+
+```{r echo=FALSE}
+data %>%
+  arrange(desc(`Percent Meeting Benchmark: 2012`)) %>%
+  select(`Percent Meeting Benchmark: 2012`,School,District) %>%
+  head()
+```
+
+Table 1.1 Highest Percentage Meeting Benchmarks in 2012
+
+The schools with the highest scoring benchmarks are New Canaan High School, Wilton High School, Weston High School, Staples Highschool, and Darien High School. The other schools have a meeting benchmark below 80. One thing to note is that each of these schools come from a different district.
+
+Let's see if the top 3 schools scored significantly better than other schools:
+
+```{r echo=FALSE, warning=FALSE}
+top3 <- data %>%
+  arrange(desc(`Percent Meeting Benchmark: 2012`)) %>%
+  select(`Percent Meeting Benchmark: 2012`,School,District) %>%
+  head(3)
+ggplot(data) +
+  geom_boxplot(aes("Percentage meeting Benchmark",`Percent Meeting Benchmark: 2012`)) + 
+  geom_point(data=top3,aes("Percentage meeting Benchmark",`Percent Meeting Benchmark: 2012`),color="Red",size=3) + 
+  theme_bw() + 
+  labs(title="Percentage meeting Benchmark in 2012",x="",y="Percentage",caption="Figure 1.2 Boxplot of Percentage Meeting Benchmark in 2012 with highest-scorers highlighted in red")
+```
+
+These schools scored significantly higher than all the other schools, they're right around the upper Inter-Quartile Range mark.
+Now we'll redo this for 2013.
+
+```{r echo=FALSE}
+data %>%
+  arrange(desc(`Percent Meeting Benchmark: 2013`)) %>%
+  select(`Percent Meeting Benchmark: 2013`,School,District) %>%
+  head()
+```
+
+Table 1.3 Highest Percentage Meeting Benchmarks in 2013
+
+The schools with the highest percentage of benchmark being met are Darien High School, Staples High School, New Canaan High School, Weston High School, and Wilton High School. The other schools scored below 80 are not worth mentioning. Interestingly, these schools are the same top scorers as the 2012 one. 
+
+Let's compare how these schools compare with the other schools:
+
+```{r echo=FALSE}
+top3 <- data %>%
+  arrange(desc(`Percent Meeting Benchmark: 2013`)) %>%
+  select(`Percent Meeting Benchmark: 2013`,School,District) %>%
+  head(3)
+ggplot(data) +
+  geom_boxplot(aes("Percentage meeting Benchmark",`Percent Meeting Benchmark: 2013`)) + 
+  geom_point(data=top3,aes("Percentage meeting Benchmark",`Percent Meeting Benchmark: 2013`),color="Red",size=3) + 
+  theme_bw() + 
+  labs(title="Percentage meeting Benchmark in 2013",x="",y="Percentage",caption="Figure 1.4 Boxplot of Percentage Meeting Benchmark in 2013 with highest-scorers highlighted in red")
+```
+
+It appears we have the same situation as 2012, where the top 5 scorers are just around the upper inter-quartile range.
+
+### Is the average percentage of meeting the benchmark higher in 2013 than 2012?
+We'll compute the average meeting benchmark of 2012 then 2013 and compare them.
+
+```{r echo=FALSE}
+data %>%
+  summarize("2012 Mean Percentage Benchmark Meet" = mean(`Percent Meeting Benchmark: 2012`,na.rm=TRUE),
+            "2013 Mean Percentage Benchmark Meet" = mean(`Percent Meeting Benchmark: 2013`,na.rm=TRUE)
+            )
+```
+
+Table 2.1 Mean percentage of benchmark meet for each year
+
+There is indeed a change from 2012 to 2013, but not a lot. The scores in 2013 are about 0.52% higher than 2012, which is very little. 
+Even though there's not much change, there may be some schools that have changed dramatically, let's try to discover the biggest change in percent meeting benchmark.
+
+```{r echo=FALSE}
+data %>%
+  arrange(desc(`Percent Meeting Benchmark: Change%`)) %>%
+  select(`Percent Meeting Benchmark: Change%`,School,`Percent Meeting Benchmark: 2012`,`Percent Meeting Benchmark: 2013`) %>%
+  head(3)
+```
+
+Table 2.2 Schools with the most drastic change in percentage meeting benchmark
+
+There is only one school that had a significant improvement of 20% increase in percentage of benchmark meets, which shot from 32% to 52%, and that is Parish Hill High School.
+
+### What is the population of high-school students in this state?
+
+To answer this question, we'll need the number of test takers for each school, the participation rate of each school, and use that to find the student population of each school, and then we can sum that up to find the total population of students in Connecticut.
+
+Let's first find an estimate for the population in 2012.
+
+```{r echo=FALSE}
+data %>%
+  transmute(student_population = `Test-takers: 2012`*(100 / `Participation Rate (estimate): 2012`)) %>%
+  summarize("2012 Student Population"=sum(student_population,na.rm=TRUE))
+```
+
+Table 3.1 Estimate of the 2012 student population
+
+There is around 40,000 high-schoolstudents in the state of Conneciticut in 2012. 
+Now let's compare it with 2013.
+
+```{r echo=FALSE}
+data %>%
+  transmute(student_population = `Test-takers: 2013`*(100 / `Participation Rate (estimate): 2013`)) %>%
+  summarize("2013 Student Population"=sum(student_population,na.rm=TRUE))
+```
+
+Table 3.2 Estimate of the 2013 student population.
+
+It is also around 40,000, and perhaps slightly higher. 
+
+## Conclusion
+
+Based on my findings, if you live in connecticut, then it's best if you send your child to one of these top 5 highschools, New Canaan High School, Wilton High School, Weston High School, Staples Highschool, or Darien High School, since they've been on the top for both 2012 and 2013. 
+If you can't live in one of thoes schools, you can also try to go to Parish Hill High School since they are fastest improving school, so there's also hope for your student to do well there in the future.
+
+It looks as if the average percentage meeting benchmark is about the same for both years, but it's very low. Some questions could be raised about why it's so low, or perhaps it's not very low compared to other states. In order to figure that out, we'd need more data from other states so we could compare Connecticut's average meeting benchmark with theirs.
+
+There's not much change in the student population of Connecitcut from 2012-2013, which hovered around 40,000. This number is just an estimate, and it could be far from the actual number for the population of high school students in Connecticut. One big disadvantage of my estimator is that I assumed the partcipation rate includes every student in highschool, including Freshman and Sophomores, and it's likely that these groups of students did not attempt the SAT, so there's bias in my estimator, and the actual number is likely higher than 40,000.
+
+### Appendix:
+```{r eval=FALSE}
+#Import the CSV file
+data <- read_csv("SAT_School_Participation_and_Performance__2012-2013.csv")
+
+#Find the schools with the highest percentage meeting benchmark for 2012
+data %>%
+  arrange(desc(`Percent Meeting Benchmark: 2012`)) %>%
+  select(`Percent Meeting Benchmark: 2012`,School,District) %>%
+  head()
+
+#Get the top 3 schools with the highest percentage meeting benchmark so we can plot them separately later on
+top3 <- data %>%
+  arrange(desc(`Percent Meeting Benchmark: 2012`)) %>%
+  select(`Percent Meeting Benchmark: 2012`,School,District) %>%
+  head(3)
+
+#Make a boxplot of the Percentage Meeting Benchmark, and emphasize the top 3
+ggplot(data) +
+  geom_boxplot(aes("Percentage meeting Benchmark",`Percent Meeting Benchmark: 2012`)) + 
+  geom_point(data=top3,aes("Percentage meeting Benchmark",`Percent Meeting Benchmark: 2012`),color="Red",size=3) + 
+  theme_bw() + 
+  labs(title="Percentage meeting Benchmark in 2012",x="",y="Percentage",caption="Figure 1.2 Boxplot of Percentage Meeting Benchmark in 2012 with highest-scorers highlighted in red")
+
+#Repeat the same code as above but for 2013 instead of 2012
+data %>%
+  arrange(desc(`Percent Meeting Benchmark: 2013`)) %>%
+  select(`Percent Meeting Benchmark: 2013`,School,District) %>%
+  head()
+
+top3 <- data %>%
+  arrange(desc(`Percent Meeting Benchmark: 2013`)) %>%
+  select(`Percent Meeting Benchmark: 2013`,School,District) %>%
+  head(3)
+
+ggplot(data) +
+  geom_boxplot(aes("Percentage meeting Benchmark",`Percent Meeting Benchmark: 2013`)) + 
+  geom_point(data=top3,aes("Percentage meeting Benchmark",`Percent Meeting Benchmark: 2013`),color="Red",size=3) + 
+  theme_bw() + 
+  labs(title="Percentage meeting Benchmark in 2013",x="",y="Percentage",caption="Figure 1.4 Boxplot of Percentage Meeting Benchmark in 2013 with highest-scorers highlighted in red")
+
+#Find the mean percentage meeting benchmark for both years
+data %>%
+  summarize("2012 Mean Percentage Benchmark Meet" = mean(`Percent Meeting Benchmark: 2012`,na.rm=TRUE),
+            "2013 Mean Percentage Benchmark Meet" = mean(`Percent Meeting Benchmark: 2013`,na.rm=TRUE)
+            )
+
+#Find the school with the biggest improvement in percent meeting benchmark
+data %>%
+  arrange(desc(`Percent Meeting Benchmark: Change%`)) %>%
+  select(`Percent Meeting Benchmark: Change%`,School,`Percent Meeting Benchmark: 2012`,`Percent Meeting Benchmark: 2013`) %>%
+  head(3)
+
+
+data %>%
+  #First we multiply the number of test-takers by the inverse of the partcipation rate to get an estimate of that school's population
+  transmute(student_population = `Test-takers: 2012`*(100 / `Participation Rate (estimate): 2012`)) %>%
+  #Then sum every school's estimated population for an estimate of the total number of high school students
+  summarize("2012 Student Population"=sum(student_population,na.rm=TRUE))
+
+#Same as above but for 2013
+data %>%
+  transmute(student_population = `Test-takers: 2013`*(100 / `Participation Rate (estimate): 2013`)) %>%
+  summarize("2013 Student Population"=sum(student_population,na.rm=TRUE))
+```
+
